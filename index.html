@@ -1,0 +1,123 @@
+<!Doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+	    <title>Face Recognition</title> 
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                width: 100vw;
+                height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column
+            }
+
+            canvas {
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+
+            button {
+                margin-top: 3%;
+                height: 30px;
+                width: 70px;
+                cursor: pointer;
+            }
+    </style>   
+	</head>
+
+    <body>
+        <div id="loading-container">Loading...</div>
+        <div id="main-container" style="display: none;">
+            <video id="player" autoplay></video>
+            <div>
+                <button id="capture">Recognise</button>
+                <button id="train">Train</button>
+                <input id="label" type="text" placeholder="Enter label here..">
+            </div>
+            <canvas id="canvas" width=320 height=240 style="visibility: hidden"></canvas>
+            <div id="address-message" style="margin: 2%;"></div>
+        </div>
+        
+        <script type="text/javascript">
+            window.indexedDB = window.indexedDB || window.mozIndexedDB || 
+         window.webkitIndexedDB || window.msIndexedDB;
+         
+         //prefixes of window.IDB objects
+         window.IDBTransaction = window.IDBTransaction || 
+         window.webkitIDBTransaction || window.msIDBTransaction;
+         window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || 
+         window.msIDBKeyRange
+         
+         if (!window.indexedDB) {
+            window.alert("Your browser doesn't support a stable version of IndexedDB.")
+         }
+         
+         let imageData = [];
+         var db;
+         var request = window.indexedDB.open("traing_images", 1);
+         
+         request.onerror = function(event) {
+            console.log("error: ", event);
+         };
+         
+         request.onsuccess = function(event) {
+            db = request.result;
+            console.log(db);
+            console.log("success: "+ db);
+         };
+         
+         request.onupgradeneeded = function(event) {
+            var db = event.target.result;
+            var objectStore = db.createObjectStore("images", { keyPath: "ID", autoIncrement: true });
+         }
+         
+         function readAll() {
+            var objectStore = db.transaction("employee").objectStore("employee");
+            
+            objectStore.openCursor().onsuccess = function(event) {
+               var cursor = event.target.result;
+               
+               if (cursor) {
+                  alert("Name for id " + cursor.key + " is " + cursor.value.name + ",  Age: " + cursor.value.age + ", Email: " + cursor.value.email);
+                  cursor.continue();
+               } else {
+                  alert("No more entries!");
+               }
+            };
+         }
+         
+         function add() {
+            var request = db.transaction(["employee"], "readwrite")
+            .objectStore("employee")
+            .add({ id: "00-03", name: "Kenny", age: 19, email: "kenny@planet.org" });
+            
+            request.onsuccess = function(event) {
+               alert("Kenny has been added to your database.");
+            };
+            
+            request.onerror = function(event) {
+               alert("Unable to add data\r\nKenny is aready exist in your database! ");
+            }
+         }
+         
+         function remove() {
+            var request = db.transaction(["employee"], "readwrite")
+            .objectStore("employee")
+            .delete("00-03");
+            
+            request.onsuccess = function(event) {
+               alert("Kenny's entry has been removed from your database.");
+            };
+         }
+        </script>
+        <script defer src="/face_recognition/faceapi.js"></script>
+        <script defer src="/face_recognition/script.js"></script>
+    </body>
+</html>
